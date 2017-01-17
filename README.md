@@ -9,15 +9,15 @@ First, I loaded the three tables into 3 separate Pandas DataFrames. My first ste
 After this, I plotted histograms of the continuous variables, and bar graphs of the categorical variables. Below, I summarize my results.
 
 1. Hour of day: More emails were sent during the late morning and early afternoon than any other time (essentially, during the workday)                               
-  ![](hours_hist.png)
+  ![](images/hours_hist.png)
 
 2. Number of past purchases: this graph was very right skewed, with the number of emails sent decreasing as a number of past items purchased. This could indicate that many users have not been very active on the site in terms of purchasing.
 
-  ![](purchases_hist.png)
+  ![](images/purchases_hist.png)
 
 3. Country: approximately the same number of emails were sent in France and Spain, with more sent in the UK, and most sent in US (over 60%).
 
-  ![](country_bar.png)
+  ![](images/country_bar.png)
 
 4. Length of email, type of email, and day of week had almost even distributions of counts across the categories
 
@@ -41,7 +41,7 @@ The plan: After taking a look at some of the summary statistics of the tables in
 
 With these issues taken care of, I ran a Logistic Regression. Below is a screenshot of the results (performed using statsmodels Logit model)
 
-![](Regression_Results.png)
+![](images/Regression_Results.png)
 
 From this, the factors that were associated with higher click through rate were:
 1. Hour of day - Looking at the hours of the day, I noticed an interesting pattern - hours 9 through 11 all had large positive beta coefficients, and they were very significant. This could be because people are at work during these hours, and are therefore more likely to be checking email. So I decided when restricting the test set to include only these hours. Also, hour 23 has a very large coefficient, so I decided to keep those emails as well (maybe people are checking their emails right before going to bed?)
@@ -51,7 +51,7 @@ From this, the factors that were associated with higher click through rate were:
 5. Day of week - Sending emails Saturday through Thursday instead of Friday (The coefficients for Monday through Thursday were largest, so I decided to keep emails on those days).
 6. Country - recipient being in the UK and US instead of France or Spain.
 
-I now restricted the test set by the above characteristics, giving me 279 observations. Of these observations, the link_clicked rate was 11%, more than 5 times higher than the remaining 49,721 observations of the test set (2% link-clicked rate). ![](click_through_rate2.png)
+I now restricted the test set by the above characteristics, giving me 279 observations. Of these observations, the link_clicked rate was 11%, more than 5 times higher than the remaining 49,721 observations of the test set (2% link-clicked rate). ![](images/click_through_rate2.png)
 
 I then tested the significance of these results using a one sided Z-test for population proportions.
 
@@ -61,7 +61,7 @@ I then tested the significance of these results using a one sided Z-test for pop
 
 The test was significant at the .05 level; the exact p_value was 0.0.
 
-We can also compare these two populations from a Bayesian perspective, where the probabilities that generated the results in each of the two groups are considered to be random variables. If we assume a beta prior, then using the binomial likelihood function results in a beta posterior as well; that is, the beta distribution is a conjugate prior. Sampling from the resulting distribution and comparing the two samples to one another gives us a probability that my method of sending out emails is better than the random method. After performing this calculation, this probability was 100%. The estimated distributions of the probabilities are shown below. ![](bayesian.png)
+We can also compare these two populations from a Bayesian perspective, where the probabilities that generated the results in each of the two groups are considered to be random variables. If we assume a beta prior, then using the binomial likelihood function results in a beta posterior as well; that is, the beta distribution is a conjugate prior. Sampling from the resulting distribution and comparing the two samples to one another gives us a probability that my method of sending out emails is better than the random method. After performing this calculation, this probability was 100%. The estimated distributions of the probabilities are shown below. ![](images/bayesian.png)
 
 
 As expected from the 100% probability that the campaign performed better among the targeted subset than the non-targeted subset, there is essentially no overlap at all between the two distributions.
@@ -70,7 +70,7 @@ As expected from the 100% probability that the campaign performed better among t
 
 ## Performance of campaign on different segments of users
 
-I only have information on two user characteristics: country of IP address of signup, and number of past items purchased. The results of the logistic regression indicated that the campaign performed better in the UK and US than in France and Spain, and also that more user past purchases were associated with higher link clicked rate. Looking at the data in the test set, the raw proportions support this.![](click_through_rate1.png)
+I only have information on two user characteristics: country of IP address of signup, and number of past items purchased. The results of the logistic regression indicated that the campaign performed better in the UK and US than in France and Spain, and also that more user past purchases were associated with higher link clicked rate. Looking at the data in the test set, the raw proportions support this.![](images/click_through_rate1.png)
 
 2.4% of the emails sent to the US and UK users resulted in a link clicked, versus 0.8% for Spain and France; this difference was significant according to the Z test for proportions. 4.4% of emails sent to users in the upper quartile of the previous items purchased resulted in links clicked, versus 2.0% for the other three quartiles; this difference was also significant. Note that since I am doing two tests here, both on country and items purchased quartile, I divided the traditional .05 alpha level by 2 (Bonferronni correction for multiple testing).
 
