@@ -12,9 +12,11 @@ After this, I plotted histograms of the continuous variables, and bar graphs of 
   ![](hours_hist.png)
 
 2. Number of past purchases: this graph was very right skewed, with the number of emails sent decreasing as a number of past items purchased. This could indicate that many users have not been very active on the site in terms of purchasing.
+
   ![](purchases_hist.png)
 
 3. Country: approximately the same number of emails were sent in France and Spain, with more sent in the UK, and most sent in US (over 60%).
+
   ![](country_bar.png)
 
 4. Length of email, type of email, and day of week had almost even distributions of counts across the categories
