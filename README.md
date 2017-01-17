@@ -44,6 +44,7 @@ With these issues taken care of, I ran a Logistic Regression. Below is a screens
 ![](images/Regression_Results.png)
 
 From this, the factors that were associated with higher click through rate were:
+
 1. Hour of day - Looking at the hours of the day, I noticed an interesting pattern - hours 9 through 11 all had large positive beta coefficients, and they were very significant. This could be because people are at work during these hours, and are therefore more likely to be checking email. So I decided when restricting the test set to include only these hours. Also, hour 23 has a very large coefficient, so I decided to keep those emails as well (maybe people are checking their emails right before going to bed?)
 
 2. Past purchases - Looking at past purchases, since it is continuous, I decided to bin it by quartile to figure out above what threshold of previous item purchases to include from the test set; the upper quartile ended up being 6 or more items.
