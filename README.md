@@ -1,4 +1,4 @@
-# Optimizing Email marketing
+# Optimizing Email Marketing
 
 This file walks the reader through my analysis of a common take home challenge, where the candidate is asked to optimize an email marketing campaign. The prompt is contained in the file "prompt.pdf." The Python code I used for my analyses is contained in the file "take_home.py". Enjoy!
 
