@@ -51,7 +51,8 @@ From this, the factors that were associated with higher click through rate were:
 5. Day of week - Sending emails Saturday through Thursday instead of Friday (The coefficients for Monday through Thursday were largest, so I decided to keep emails on those days).
 6. Country - recipient being in the UK and US instead of France or Spain.
 
-I now restricted the test set by the above characteristics, giving me 279 observations. Of these observations, the link_clicked rate was 11%, more than 5 times higher than the remaining 49,721 observations of the test set (2% link-clicked rate). ![](images/click_through_rate2.png)
+I now restricted the test set by the above characteristics, giving me 279 observations. Of these observations, the link_clicked rate was 11%, more than 5 times higher than the remaining 49,721 observations of the test set (2% link-clicked rate). 
+![](images/click_through_rate2.png)
 
 I then tested the significance of these results using a one sided Z-test for population proportions.
 
