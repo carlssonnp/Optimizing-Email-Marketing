@@ -45,10 +45,14 @@ With these issues taken care of, I ran a Logistic Regression. Below is a screens
 
 From this, the factors that were associated with higher click through rate were:
 1. Hour of day - Looking at the hours of the day, I noticed an interesting pattern - hours 9 through 11 all had large positive beta coefficients, and they were very significant. This could be because people are at work during these hours, and are therefore more likely to be checking email. So I decided when restricting the test set to include only these hours. Also, hour 23 has a very large coefficient, so I decided to keep those emails as well (maybe people are checking their emails right before going to bed?)
+
 2. Past purchases - Looking at past purchases, since it is continuous, I decided to bin it by quartile to figure out above what threshold of previous item purchases to include from the test set; the upper quartile ended up being 6 or more items.
 3. Shorter emails versus longer emails.
+
 4. Personalized emails instead of generic emails.
+
 5. Day of week - Sending emails Saturday through Thursday instead of Friday (The coefficients for Monday through Thursday were largest, so I decided to keep emails on those days).
+
 6. Country - recipient being in the UK and US instead of France or Spain.
 
 I now restricted the test set by the above characteristics, giving me 279 observations. Of these observations, the link_clicked rate was 11%, more than 5 times higher than the remaining 49,721 observations of the test set (2% link-clicked rate). 
