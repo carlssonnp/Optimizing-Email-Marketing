@@ -40,7 +40,7 @@ The plan: After taking a look at some of the summary statistics of the tables in
 
       Due to its interpolative nature, SMOTE is designed to work with continuous features, and if used with dummy variables will result in synthetic observations with values between 0 and 1 for what should be binary variables. I thus opted not to use SMOTE.
 
-    2. Random majority under-sampling with replacement.  With this method, random observations from the majority class are chosen, with those not selected discarded from the analysis. This balances the data but has the main limitation of throwing out data. I built a model using this, and noticed that depending on the observations that were chosen, sometimes the beta coefficient for 'hour of day: 24' would have a huge standard error; even worse, sometimes the model wouldn't run at all, giving me a singular matrix error. After digging a little deeper, I discovered why this was happening. It turns out that of the 100,000 total emails, only 69 were sent at hour 24. So when doing the random under-sampling, sometimes it would happen that none of the emails sent at hour 24 were included in the sample. The resulting feature matrix thus had all 0s for that column, and was not full rank. Logistic regression solvers wont work for singular feature matrices, so this was an issue. Even if a few emails from hour 24 were included in the sample, the feature matrix was close enough to singular that it still posed problems for the solver, giving me huge variance estimates.
+    2. Random majority under-sampling with replacement.  With this method, random observations from the majority class are chosen, with those not selected discarded from the analysis. This balances the data but has the main limitation of throwing out data. I built a model using this, and noticed that depending on the observations that were chosen, sometimes the beta coefficient for 'hour of day: 24' would have a huge standard error; even worse, sometimes the model wouldn't run at all, giving me a singular matrix error. After digging a little deeper, I discovered why this was happening. It turns out that of the 100,000 total emails, only 69 were sent at hour 24. So when doing the random under-sampling, sometimes it would happen that none of the emails sent at hour 24 were included in the sample. The resulting feature matrix thus had all 0s for that column, and was not full rank. Logistic regression solvers won't work for singular feature matrices, so this was an issue. Even if a few emails from hour 24 were included in the sample, the feature matrix was close enough to singular that it still posed problems for the solver, giving me huge variance estimates.
 
       With this in mind, I decided not to use random under-sampling, as I wanted a model that would work with the granularity of my time measurements.
 
@@ -69,7 +69,7 @@ I now restricted the test set by the above characteristics, giving me 40 observa
 
 ![](images/click_through_rate2.png)
 
-I then tested the significance of these results using a one sided Z-test for population proportions.
+I then tested the significance of these results using a one sided Z-test for population proportions. While the sample size for the targeted subset was small (40), it was still large enough that the normal approximation to the binomial was appropriate (np = 40*.225 = 9, which is above the typical threshold of 5)
 
 1. Null hypothesis: Targeted portion of test set has a lower than or equal proportion of links clicked than the non- targeted portion of test set.
 
