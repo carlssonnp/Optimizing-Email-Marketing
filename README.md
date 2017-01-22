@@ -1,6 +1,6 @@
 # Optimizing Email Marketing
 
-This file walks the reader through my analysis of a common take home challenge, where the candidate is asked to optimize an email marketing campaign. The prompt is contained in the file "prompt.pdf." The Python code I used for my analyses is contained in the file "take_home.py". Enjoy!
+This file walks the reader through my analysis of a common take home challenge, where the candidate is asked to optimize an email marketing campaign. I was able to devise a more intelligent way of sending out emails that has the potential to result in 1000% increase in click-through rate, from 2% to over 22%. The prompt is contained in the file "prompt.pdf." The Python code I used for my analyses is contained in the file "take_home.py". Enjoy!
 
 ## Exploratory Data Analysis
 
@@ -54,7 +54,7 @@ With these issues taken care of, I ran a Logistic Regression. Below is a screens
 
 From this, the factors that were associated with higher click through rate were:
 
-1. Hour of day - Looking at the hours of the day, I noticed that hours 10, 22, and 23 all had positive beta coefficients, and they were very significant. Perhaps at 10 AM people are getting into the work rhythm and checking their email frequently, whereas at 10 and 11 they might be checking their emails right before going to bed. So I decided when restricting the test set to include only these hours.
+1. Hour of day - Looking at the hours of the day, I noticed that hours 10, 22, and 23 all had positive beta coefficients, and they were very significant. Perhaps at 10 AM people are getting into the work rhythm and checking their email frequently, whereas at 10 and 11 PM they might be checking their emails right before going to bed. So I decided when restricting the test set to include only these hours.
 
 2. Past purchases - Looking at past purchases, since it is continuous, I decided to bin it by quartile to figure out above what threshold of previous item purchases to include from the test set; the upper quartile ended up being 6 or more items.
 3. Shorter emails versus longer emails.
