@@ -27,7 +27,7 @@ I now calculated the conversion rates of the emails, both for opening the email 
 
 2. Overall link-clicked rate: 2.1%. Only 1 out of 50 emails result in a link clicked
 
-3. Link-clicked rate for opened emails: 20.5%. However, for every 5 emails opened, one lick is clicked.
+3. Link-clicked rate for opened emails: 20.5%. However, for every 5 emails opened, one link is clicked.
 
 ## In-depth Data Analysis
 
