@@ -1,6 +1,6 @@
 # Optimizing Email Marketing
 
-This file walks the reader through my analysis of a common take home challenge, where the candidate is asked to optimize an email marketing campaign. I was able to devise a more intelligent way of sending out emails that has the potential to result in 1000% increase in click-through rate, from 2% to over 22%. The prompt is contained in the file "prompt.pdf." The Python code I used for my analyses is contained in the file "take_home.py". Enjoy!
+This file walks the reader through my analysis of a common take home challenge, where the candidate is asked to optimize an email marketing campaign. I was able to devise a more intelligent way of sending out emails that has the potential to result in a 1000% increase in click-through rate, from 2% to over 22%. The prompt is contained in the file "prompt.pdf." The Python code I used for my analyses is contained in the file "take_home.py". Enjoy!
 
 ## Exploratory Data Analysis
 
