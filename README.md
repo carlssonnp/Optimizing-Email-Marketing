@@ -35,7 +35,16 @@ The plan: After taking a look at some of the summary statistics of the tables in
 
 1. Avoiding overfitting. If I generated my parameter estimates using the entire dataset, then restricted the dataset to the desired characteristics, and finally calculated the link-clicked rate, I would be likely be overfitting, because my estimate of the improved link-clicked rate would be based upon the same sample that generated the beta coefficients. To deal with this, I created a test-train-split, with 50% of the data in each of the train and test splits. I chose this split because I was worried that in the end, when I restrict the test set to characteristics positively associated with link-clicked rate, I might not have a large enough sample to make a significant conclusion. Therefore I opted to have the test set be relatively large for this model.
 
-2. Unbalanced classes. I had to take into account the extreme imbalance of the dataset; as noted above, only 1 in 50 observations were positive (meaning a link was clicked). To do this, I utilize the SMOTE (Synthetic Minority Over-sampling Technique), in which new observations of the minority class are created, with features interpolated from the existing minority observations. This is a better technique than simply oversampling from the minority class, as the learned model would then overfit to the specific examples of the minority class present in the train set. After using SMOTE on the train set (this is important, as performing SMOTE before the train-test split could lead to test set leakage), the train set was exactly balanced.
+2. Unbalanced classes. I had to take into account the extreme imbalance of the dataset; as noted above, only 1 in 50 observations were positive (meaning a link was clicked). I considered three approaches for this.
+    1. SMOTE (Synthetic Minority Over-sampling Technique). This technique creates new observations of the minority class, with features interpolated from the existing minority observations. This can be preferential to simply oversampling from the minority class, as the learned model would then overfit to the specific examples of the minority class present in the train set. The drawback, of course, is that data is created that doesn't actually exist.
+
+    Due to its interpolative nature, SMOTE is designed to work with continuous features, and if used with dummy variables will result in synthetic observations with values between 0 and 1 for what should be binary variables. I thus opted not to use SMOTE.
+
+    2. Random majority under-sampling with replacement.  With this method, random observations from the majority class are chosen, with those not selected discarded from the analysis. This balances the data but has the main limitation of throwing out data. I built a model using this, and noticed that depending on the observations that were chosen, sometimes the beta coefficient for 'hour of day: 24' would have a huge standard error; even worse, sometimes the model wouldn't run at all, giving me a singular matrix error. After digging a little deeper, I discovered why this was happening. It turns out that of the 100,000 total emails, only 69 were sent at hour 24. So when doing the random under-sampling, sometimes it would happen that none of the emails sent at hour 24 were included in the sample. The resulting feature matrix thus had all 0s for that column, and was not full rank. Logistic regression solvers wont work for singular feature matrices, so this was an issue. Even if a few emails from hour 24 were included in the sample, the feature matrix was close enough to singular that it still posed problems for the solver, giving me huge variance estimates.
+
+    With this in mind, I decided not to use random under-sampling, as I wanted a model that would work with the granularity of my time measurements.
+
+    3. Random minority over-sampling with replacement. With this method, random observations from the minority class are added to the sample. This has the advantage of neither discarding data (under-sampling) nor artificially creating new data (SMOTE). However, the downside is that the model can overfit to the minority samples present in the data. I chose this method to build my model because of the limitations discussed earlier with 1. and 2.  
 
 3. String coded categorical variables. I dummified hour of day (I considered it categorical rather than continuous to allow for a non-monotonic time effect), user country, email length, email type, and day of week.
 
@@ -45,18 +54,18 @@ With these issues taken care of, I ran a Logistic Regression. Below is a screens
 
 From this, the factors that were associated with higher click through rate were:
 
-1. Hour of day - Looking at the hours of the day, I noticed an interesting pattern - hours 9 through 11 all had large positive beta coefficients, and they were very significant. This could be because people are at work during these hours, and are therefore more likely to be checking email. So I decided when restricting the test set to include only these hours. Also, hour 23 has a very large coefficient, so I decided to keep those emails as well (maybe people are checking their emails right before going to bed?)
+1. Hour of day - Looking at the hours of the day, I noticed that hours 10, 22, and 23 all had positive beta coefficients, and they were very significant. Perhaps at 10 AM people are getting into the work rhythm and checking their email frequently, whereas at 10 and 11 they might be checking their emails right before going to bed. So I decided when restricting the test set to include only these hours.
 
 2. Past purchases - Looking at past purchases, since it is continuous, I decided to bin it by quartile to figure out above what threshold of previous item purchases to include from the test set; the upper quartile ended up being 6 or more items.
 3. Shorter emails versus longer emails.
 
 4. Personalized emails instead of generic emails.
 
-5. Day of week - Sending emails Saturday through Thursday instead of Friday (The coefficients for Monday through Thursday were largest, so I decided to keep emails on those days).
+5. Day of week - Sending emails Saturday through Thursday instead of Friday (The coefficients for Wednesday and Thursday were largest, so I decided to keep emails on those days).
 
 6. Country - recipient being in the UK and US instead of France or Spain.
 
-I now restricted the test set by the above characteristics, giving me 279 observations. Of these observations, the link_clicked rate was 11%, more than 5 times higher than the remaining 49,721 observations of the test set (2% link-clicked rate). 
+I now restricted the test set by the above characteristics, giving me 40 observations. Of these observations, the link_clicked rate was 23%, more than 10 times higher than the remaining observations of the test set! (2% link-clicked rate).
 
 ![](images/click_through_rate2.png)
 
@@ -86,7 +95,7 @@ Bayesian methods, analogous to the previous analysis for the targeted subset, yi
 
 ##Business Recommendations/ Explicit Answers to Prompt Questions
 
-I recommend that instead of sending emails out to random users, with random email characteristics, that emails only be sent to users in the U.S. and U.K, on Monday through Thursday, between 9 AM and 12 PM or from 11 PM to 12AM. These emails should only be sent to users who have previously purchased above six items. Furthermore, emails should all be of shorter length and personalized. Following these recommendations should result in a five fold increase in link-clicked rates, from around 2% to over 10%.
+I recommend that instead of sending emails out to random users, with random email characteristics, that emails only be sent to users in the U.S. and U.K, on Wednesday and Thursday, between 10 AM and 11 AM or from 10 PM to 12AM. These emails should only be sent to users who have previously purchased above six items. Furthermore, emails should all be of shorter length and personalized. Following these recommendations should result in a ten fold increase in link-clicked rates, from around 2% to over 22%.
 
 Explicit answers to prompt questions:
 
@@ -100,15 +109,15 @@ Explicit answers to prompt questions:
 
 3. By how much do you think your model would improve click through rate ( defined as # of users who click on the link / total users who received the email). How would you test that?
 
-    If emails are sent out according to my recommendations, we can expect an increase from 2.1% to 10.8% link-clicked rate. These results were derived by training the logistic regression model on one portion of the data, and then applying the results to the remaining data. To test this, we could set up a trial where emails are sent to customers meeting the above characteristics, with the emails themselves also meeting the above characteristics, and then compare this to the previous random method. There are several methods for doing this sort of A/B testing: we could send out an equal number of emails according to the random method and according to my specifications, and then compare the proportions of link-clicked between the two groups either using frequentist methods (Z test for proportions) or Bayesian methods (utilizing a beta prior and posterior, as explained earlier). Alternatively, I could set up a multi-armed bandit strategy so that I could simultaneously compare the two methods while taking advantage of the one that performs better. If we adopt the Z test approach, I have calculated the necessary number of emails that need to be sent out to each group for different powers and alpha levels, assuming the results of this future test are similar to those found in the targeted and non-targeted groups from the current dataset.
-    1. Power .8, alpha .05 : 96 emails sent to each group
-    2. Power .9, alpha .05: 133 emails sent to each group
-    3. Power .99, alpha .01: 335 emails sent to each group
+    If emails are sent out according to my recommendations, we can expect an increase from 2.1% to 22.5% link-clicked rate. These results were derived by training the logistic regression model on one portion of the data, and then applying the results to the remaining data. To test this, we could set up a trial where emails are sent to customers meeting the above characteristics, with the emails themselves also meeting the above characteristics, and then compare this to the previous random method. There are several methods for doing this sort of A/B testing: we could send out an equal number of emails according to the random method and according to my specifications, and then compare the proportions of link-clicked between the two groups either using frequentist methods (Z test for proportions) or Bayesian methods (utilizing a beta prior and posterior, as explained earlier). Alternatively, I could set up a multi-armed bandit strategy so that I could simultaneously compare the two methods while taking advantage of the one that performs better. If we adopt the Z test approach, I have calculated the necessary number of emails that need to be sent out to each group for different powers and alpha levels, assuming the results of this future test are similar to those found in the targeted and non-targeted groups from the current dataset.
+    1. Power .8, alpha .05 : 29 emails sent to each group
+    2. Power .9, alpha .05: 41 emails sent to each group
+    3. Power .99, alpha .01: 102 emails sent to each group
 4. Did you find any interesting pattern on how the email campaign performed for different segments of users? Explain.
 
     The campaign fared better in the US and UK than in France and Spain. The campaign was also more successful among users with larger numbers of previous purchases. One suggestion I have here is to allow new users access to special deals on items, so that they purchase more items and enter the company's pipeline faster. This will hopefully convert them quickly into the segment of users with larger numbers of previously purchased items, increasing the overall success of the campaign strategy.  
 
 ## Future work
-Given the small number of emails required even for power = .99 and alpha = .01, a test of the sort I described in part 3 of the previous section should be implemented immediately to confirm the results of my analysis. Although I mentioned multi-armed bandit techniques earlier, the small cost of sending out 335 emails with potentially suboptimal characteristics is small enough that I don't think a simultaneous comparison and exploitation strategy is necessary.
+Given the small number of emails required even for power = .99 and alpha = .01, a test of the sort I described in part 3 of the previous section should be implemented immediately to confirm the results of my analysis. Although I mentioned multi-armed bandit techniques earlier, the small cost of sending out 102 emails with potentially suboptimal characteristics is small enough that I don't think a simultaneous comparison and exploitation strategy is necessary.
 
 I also encourage the company to begin collecting more user information, as currently there is only information on country of IP address at signup and and number of past purchases. For example, it would be helpful to see what types of items a user has purchased, to see if there is a correlation between that and link-clicked rate. Furthermore, having more user characteristics could allow for exploration of the interaction between user characteristics and email characteristics; perhaps certain types of emails work better for some types of users than others. This kind of exploration could open up the possibility of sending different types of emails to different types of users.

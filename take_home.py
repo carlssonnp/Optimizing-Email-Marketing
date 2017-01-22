@@ -6,7 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from statsmodels.discrete.discrete_model import Logit
 from sklearn.model_selection import train_test_split
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
 from scipy.stats import norm, beta
 import numpy as np
 
@@ -99,8 +100,37 @@ def create_Logit(X,y):
     X['constant'] = 1
     X.pop('email_id')
     logit = Logit(y,X)
-    model = logit.fit(maxiter = 100)
+    model = logit.fit(maxiter = 400)
     return model
+
+
+def compare_precision(X_train, y_train):
+    sm = SMOTE(kind = 'regular')
+    random_over_sampler = RandomOverSampler()
+    random_under_sampler = RandomUnderSampler()
+
+    X_train_SMOTE, y_train_SMOTE= sm.fit_sample(X_train,y_train)
+    X_train_SMOTE = pd.DataFrame(X_train_SMOTE)
+    X_train_SMOTE.columns = X_train.columns
+
+    X_train_over_sample, y_train_over_sample= random_over_sampler.fit_sample(X_train,y_train)
+    X_train_over_sample = pd.DataFrame(X_train_over_sample)
+    X_train_over_sample.columns = X_train.columns
+    print X_train_over_sample.columns
+
+    X_train_under_sample, y_train_under_sample= random_under_sampler.fit_sample(X_train,y_train)
+    X_train_under_sample = pd.DataFrame(X_train_under_sample)
+    X_train_under_sample.columns = X_train.columns
+
+    sm_logit = create_Logit(X_train_SMOTE,y_train_SMOTE)
+    over_sample_logit = create_Logit(X_train_over_sample,y_train_over_sample)
+    under_sample_logit = create_Logit(X_train_under_sample.iloc[:,:], y_train_under_sample)
+
+
+
+    return sm_logit, over_sample_logit, under_sample_logit
+
+
 
 def z_test_proportions(y1,y2,alpha = .05):
     '''
@@ -240,16 +270,22 @@ if __name__ == '__main__':
     X_no_dummies, y_no_dummies = create_X_y(emails_sent,links_clicked)
     # create a version with dummified categorical variables, used for model building.
     X,y = create_X_y(dummified_df_drop_one,links_clicked)
-
+    #X.pop('email_id')
     # My idea is to determine what the characteristics associated with higher link-clicked rate are, restrict the test portion of the dataset to emails that had those characteristics, and then calculate the link clicked rate of that subset to estimate how my the results of my model would improve the rate. For interpretability, I choose a logistic regression model. Since we are dealing with unbalanced classes here, I will need to either undersample or oversample to make sure the underrepresented class (here, the users who clicked on the link) is accurately represented. I will use the SMOTE (synthetic minority oversampling technique) implementation provided by the Python libarary imbalanced-learn.
 
     # I also create a train-test split here, to avoid overly optimistic estimates of the click through rates. I use a relatively large test size because in the end, when I calculate the link clicked percentage among only those individuals in the test set with the desired characteristics, this subset may be significantly smaller than the full test set. Also note that I use the SMOTE technique AFTER the train_test_split; otherwise test set leakage may occur.
+# random state 1
+    random_over_sampler = RandomOverSampler()
     X_train, X_test,y_train, y_test = train_test_split(X,y,test_size = .5, random_state = 1)
-    sm = SMOTE(kind = 'regular')
-    X_train_balanced, y_train_balanced = sm.fit_sample(X_train,y_train)
-    X_train_balanced = pd.DataFrame(X_train_balanced)
-    X_train_balanced.columns = X_train.columns
-    model = create_Logit(X_train_balanced,y_train_balanced)
+    X_train_over_sample, y_train_over_sample= random_over_sampler.fit_sample(X_train,y_train)
+    X_train_over_sample = pd.DataFrame(X_train_over_sample)
+    X_train_over_sample.columns = X_train.columns
+    #sm = SMOTE(kind = 'regular')
+    #X_train_balanced, y_train_balanced = sm.fit_sample(X_train,y_train)
+    #X_train_balanced = pd.DataFrame(X_train_balanced)
+    #X_train_balanced.columns = X_train.columns
+    #model = create_Logit(X_train_balanced,y_train_balanced)
+    model = create_Logit(X_train_over_sample,y_train_over_sample)
     print model.summary(), '\n'
 
     # From this, the factors that are associated with higher click through rate are hour of day, past purchases, shorter emails, personalized emails, sending emails Sunday through Monday instead of Friday , and recipient being in the UK and US instead of France or Spain. Looking at the hours of the day, I notice an interesting pattern - hours 9 through 11 all have large positive beta coefficients, and they are very significant. This could be because people are at work during these hours, and are therefore more likely to be checking email. So I will keep emails in the test set during these hours. Also, hour 23 has a very large coefficient, so I will keep these emails as well (maybe people are checking their emails right before going to bed?) Looking at past purchases, since it is continuous, we will want to bin it to figure out above what threshold of previous item purchases to include.
@@ -265,8 +301,8 @@ if __name__ == '__main__':
 
     # Create indicator variable for whether or not email meets the desired characteristics
     df_test['subset'] = 'Non-targeted subset'
-    df_test['subset'][((df_test['hour_9'] == 1)| (df_test['hour_10'] == 1) | (df_test['hour_11'] == 1) | (df_test['hour_23'] == 1) ) & (df_test['user_past_purchases'] > 6) & (df_test['email_text_short_email'] == 1) &
-    (df_test['email_version_personalized'] == 1) & ((df_test['weekday_Monday']== 1 ) | (df_test['weekday_Tuesday']== 1) |(df_test['weekday_Wednesday']== 1) | (df_test['weekday_Thursday'] == 1)) & ((df_test['user_country_UK'] == 1)|(df_test['user_country_US'] ==1 ))] = 'Targeted subset'
+    df_test['subset'][( (df_test['hour_10'] == 1) | (df_test['hour_22'] == 1) | (df_test['hour_23'] == 1) ) & (df_test['user_past_purchases'] > 6) & (df_test['email_text_short_email'] == 1) &
+    (df_test['email_version_personalized'] == 1) & ((df_test['weekday_Wednesday']== 1) | (df_test['weekday_Thursday'] == 1)) & ((df_test['user_country_UK'] == 1)|(df_test['user_country_US'] ==1 ))] = 'Targeted subset'
 
 
     # Print the click through rate for the non targeted subset versus the targeted subset.
@@ -291,9 +327,9 @@ if __name__ == '__main__':
     # From this test we see that the restricted subset has a much higher proportion of links clicked than the rest of the emails: specifically 11% versus 2%. To test this, we could set up a trial where emails are sent to customers meeting the above characteristics, with the emails themselves also meeting the above characteristics, and then compare this to the previous random method. There are several methods for doing this sort of A/B testing: we could send out an equal number of emails according to the random method and according to my specifications, and then compare the proportions of link-clicked between the two groups either using frequentist methods (Z test for proportions) or Bayesian methods (utilizing a beta prior and posterior). Alternatively, I could set up a multi-armed bandit strategy so that I could simultaneously compare the two methods while taking advantage of the one that performs better. For the Z-test approach, I have written a function to compute the necessary sample size (number of emails sent out) for a given power. This function is called "power_calculation".
 
     # To compute sample size, I assume that the results of the future test will be similar to the results in this test set, i.e. 10.8% versus 2.1%.
-    print 'For power of .8 and alpha .05, sample size for each group should be:',power_calculation(.108,.021,.05,.8), '\n'
-    print 'For power of .9 and alpha .05, sample size for each group should be:',power_calculation(.108,.021,.05,.9), '\n'
-    print 'For power of .99 and alpha .01, sample size for each group should be:',power_calculation(.108,.021,.01,.99), '\n'
+    print 'For power of .8 and alpha .05, sample size for each group should be:',power_calculation(.225,.021,.05,.8), '\n'
+    print 'For power of .9 and alpha .05, sample size for each group should be:',power_calculation(.225,.021,.05,.9), '\n'
+    print 'For power of .99 and alpha .01, sample size for each group should be:',power_calculation(.225,.021,.01,.99), '\n'
 
     # Once the data has been gathered, the function "Z_test_proportions" can be used to analyze the difference between the two groups, or the function ""bayesian_probability" can be used if a Bayesian approach is desired.
 
