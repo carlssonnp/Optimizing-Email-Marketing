@@ -104,33 +104,6 @@ def create_Logit(X,y):
     return model
 
 
-def compare_precision(X_train, y_train):
-    sm = SMOTE(kind = 'regular')
-    random_over_sampler = RandomOverSampler()
-    random_under_sampler = RandomUnderSampler()
-
-    X_train_SMOTE, y_train_SMOTE= sm.fit_sample(X_train,y_train)
-    X_train_SMOTE = pd.DataFrame(X_train_SMOTE)
-    X_train_SMOTE.columns = X_train.columns
-
-    X_train_over_sample, y_train_over_sample= random_over_sampler.fit_sample(X_train,y_train)
-    X_train_over_sample = pd.DataFrame(X_train_over_sample)
-    X_train_over_sample.columns = X_train.columns
-    print X_train_over_sample.columns
-
-    X_train_under_sample, y_train_under_sample= random_under_sampler.fit_sample(X_train,y_train)
-    X_train_under_sample = pd.DataFrame(X_train_under_sample)
-    X_train_under_sample.columns = X_train.columns
-
-    sm_logit = create_Logit(X_train_SMOTE,y_train_SMOTE)
-    over_sample_logit = create_Logit(X_train_over_sample,y_train_over_sample)
-    under_sample_logit = create_Logit(X_train_under_sample.iloc[:,:], y_train_under_sample)
-
-
-
-    return sm_logit, over_sample_logit, under_sample_logit
-
-
 
 def z_test_proportions(y1,y2,alpha = .05):
     '''
@@ -280,11 +253,6 @@ if __name__ == '__main__':
     X_train_over_sample, y_train_over_sample= random_over_sampler.fit_sample(X_train,y_train)
     X_train_over_sample = pd.DataFrame(X_train_over_sample)
     X_train_over_sample.columns = X_train.columns
-    #sm = SMOTE(kind = 'regular')
-    #X_train_balanced, y_train_balanced = sm.fit_sample(X_train,y_train)
-    #X_train_balanced = pd.DataFrame(X_train_balanced)
-    #X_train_balanced.columns = X_train.columns
-    #model = create_Logit(X_train_balanced,y_train_balanced)
     model = create_Logit(X_train_over_sample,y_train_over_sample)
     print model.summary(), '\n'
 
